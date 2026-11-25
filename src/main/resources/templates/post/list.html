@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Reddit Clone - Home</title>
+</head>
+<body>
+<div layout:fragment="content" class="container py-4">
+    <form id="sortForm" method="get">
+        <label for="sort">Sort by:</label>
+        <select id="sort" name="sort" onchange="document.getElementById('sortForm').submit()">
+            <option value="new" th:selected="${sort == 'new'}">New</option>
+            <option value="hot" th:selected="${sort == 'hot'}">Hot</option>
+        </select>
+        <input type="hidden" name="page" th:value="${currentPage}" />
+    </form>
+
+
+    <div class="reddit-feed">
+        <div th:fragment="posts(posts)">
+
+            <!-- Posts List -->
+            <div th:if="${posts.content.size() > 0}">
+                <div th:each="post : ${posts.content}" class="card mb-4 shadow-sm border-0 rounded-3">
+                    <div class="row g-0">
+                        <!-- Voting Section -->
+                        <div class="col-auto bg-light d-flex flex-column align-items-center justify-content-center px-3 py-4 border-end">
+                            <form th:action="@{/api/votes}" method="post" class="mb-2">
+                                <input type="hidden" name="postId" th:value="${post.id}"/>
+                                <button type="submit" name="voteType" value="UPVOTE"
+                                        class="btn p-2 rounded-circle"
+                                        th:classappend="${post.voteStatus == 'UPVOTE'} ? 'btn-success' : 'btn-outline-secondary'"
+                                        style="font-size: 1.5rem;">
+                                    <i class="bi bi-arrow-up-circle-fill"></i>
+                                </button>
+                            </form>
+
+                            <div class="fw-bold fs-6"
+                                 th:classappend="${post.voteCount > 0} ? 'text-success' : (${post.voteCount < 0} ? 'text-danger' : 'text-secondary')"
+                                 th:text="${post.voteCount}">0</div>
+
+                            <form th:action="@{/api/votes}" method="post" class="mt-2">
+                                <input type="hidden" name="postId" th:value="${post.id}"/>
+                                <button type="submit" name="voteType" value="DOWNVOTE"
+                                        class="btn p-2 rounded-circle"
+                                        th:classappend="${post.voteStatus == 'DOWNVOTE'} ? 'btn-danger' : 'btn-outline-secondary'"
+                                        style="font-size: 1.5rem;">
+                                    <i class="bi bi-arrow-down-circle-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Main Post Content -->
+                        <div class="col p-4">
+                            <!-- Post Header -->
+                            <div class="d-flex align-items-center mb-2 text-muted small">
+                                <span class="me-2">
+                                    r/<span th:text="${post.communityName}">community</span>
+                                </span>
+                                <span>• Posted by <strong th:text="${post.username}">user</strong></span>
+                                <span class="ms-1">• <span th:text="${@timeAgoUtil.toTimeAgo(post.createdDate)}">date</span></span>
+                            </div>
+
+                            <!-- Post Title -->
+                            <h5 class="card-title mb-2">
+                                <a th:href="@{'/posts/' + ${post.id}}"
+                                   class="text-decoration-none text-dark fw-semibold"
+                                   th:text="${post.title}">Post Title</a>
+                            </h5>
+
+                            <!-- Post Content -->
+                            <p class="text-muted mb-3"
+                               th:if="${post.content != null and !#strings.isEmpty(post.content)}"
+                               th:text="${#strings.abbreviate(post.content, 180)}">
+                                Post content preview...
+                            </p>
+
+                            <!-- Image (if available) -->
+                            <div th:if="${post.primaryMediaUrl != null}" class="d-flex justify-content-center mb-3">
+                                <img th:src="${post.primaryMediaUrl}"
+                                     th:alt="${post.title}"
+                                     class="img-fluid rounded shadow-sm"
+                                     style="max-height: 250px; width: auto; object-fit: contain; display: block;">
+                            </div>
+
+
+                            <!-- Footer: Comments & Type -->
+                            <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                                <div class="text-muted small">
+                                    <i class="bi bi-chat me-1"></i>
+                                    <span th:text="${post.commentCount}">0</span> Comments
+                                </div>
+<!--                                <span class="badge bg-secondary text-uppercase"-->
+<!--                                      th:text="${post.postType}">TEXT</span>-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${posts.content.size() == 0}" class="text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h4 class="text-muted mt-3">No posts found</h4>
+                <p class="text-muted">Start the conversation by creating a new post!</p>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${posts.totalPages > 1}" aria-label="Posts pagination">
+                <ul class="pagination justify-content-center mt-4">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/home(page=${currentPage - 1}, size=${posts.size}, sort=${sort})}">
+                            &laquo; Previous
+                        </a>
+                    </li>
+
+                    <li th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}"
+                        class="page-item"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{/home(page=${i}, size=${posts.size}, sort=${sort})}"
+                           th:text="${i + 1}">1</a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${currentPage == posts.totalPages - 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/home(page=${currentPage + 1}, size=${posts.size}, sort=${sort})}">
+                            Next &raquo;
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
+

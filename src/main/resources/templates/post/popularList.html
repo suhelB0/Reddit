@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Popular Posts</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-fire text-danger"></i> Popular Posts</h2>
+        <a th:href="@{/posts/create}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create Post
+        </a>
+    </div>
+
+    <!-- Posts Section -->
+    <div th:if="${posts.content.size() > 0}">
+        <div th:each="post : ${posts.content}" class="card shadow-sm mb-4 border-light">
+            <div class="card-body p-0">
+                <div class="row g-0">
+                    <!-- Vote Section -->
+                    <div class="col-auto bg-light d-flex flex-column align-items-center justify-content-center py-3"
+                         style="min-width: 70px; border-right: 1px solid #dee2e6;">
+
+<!--                        <form th:action="@{/api/votes}" method="post" class="mb-1">-->
+<!--                            <input type="hidden" name="postId" th:value="${post.id}"/>-->
+<!--                            <button type="submit" name="voteType" value="UPVOTE"-->
+<!--                                    class="btn btn-link p-0 text-secondary"-->
+<!--                                    style="font-size: 1.5rem;">-->
+<!--                                <i class="bi bi-arrow-up-circle"></i>-->
+<!--                            </button>-->
+<!--                        </form>-->
+                        <form th:action="@{/api/votes}" method="post" class="mb-2">
+                            <input type="hidden" name="postId" th:value="${post.id}"/>
+                            <button type="submit" name="voteType" value="UPVOTE"
+                                    class="btn p-2 rounded-circle"
+                                    th:classappend="${post.voteStatus == 'UPVOTE'} ? 'btn-success' : 'btn-outline-secondary'"
+                                    style="font-size: 1.5rem;">
+                                <i class="bi bi-arrow-up-circle-fill"></i>
+                            </button>
+                        </form>
+
+                        <div class="fw-bold"
+                             th:classappend="${post.voteCount > 0} ? 'text-success' : (${post.voteCount < 0} ? 'text-danger' : 'text-secondary')"
+                             th:text="${post.voteCount}">0</div>
+
+<!--                        <form th:action="@{/api/votes}" method="post" class="mt-1">-->
+<!--                            <input type="hidden" name="postId" th:value="${post.id}"/>-->
+<!--                            <button type="submit" name="voteType" value="DOWNVOTE"-->
+<!--                                    class="btn btn-link p-0 text-secondary"-->
+<!--                                    style="font-size: 1.5rem;">-->
+<!--                                <i class="bi bi-arrow-down-circle"></i>-->
+<!--                            </button>-->
+<!--                        </form>-->
+                        <form th:action="@{/api/votes}" method="post" class="mt-2">
+                            <input type="hidden" name="postId" th:value="${post.id}"/>
+                            <button type="submit" name="voteType" value="DOWNVOTE"
+                                    class="btn p-2 rounded-circle"
+                                    th:classappend="${post.voteStatus == 'DOWNVOTE'} ? 'btn-danger' : 'btn-outline-secondary'"
+                                    style="font-size: 1.5rem;">
+                                <i class="bi bi-arrow-down-circle-fill"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Post Content -->
+                    <div class="col p-3">
+                        <!-- Post Header -->
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="me-2 text-muted small">
+                                r/<span th:text="${post.communityName}">community</span>
+                            </span>
+                            <span class="text-muted small">
+                                • Posted by
+                                <strong th:text="${post.userId != null ? post.username : 'Anonymous'}">user</strong>
+                                • <span th:text="${@timeAgoUtil.toTimeAgo(post.createdDate)}">Date</span>
+                            </span>
+                        </div>
+
+                        <!-- Post Title -->
+                        <h5 class="card-title mb-2">
+                            <a th:href="@{'/posts/' + ${post.id}}"
+                               class="text-decoration-none text-dark fw-bold"
+                               th:text="${post.title}">Post Title</a>
+                        </h5>
+
+                        <!-- Post Content -->
+                        <p class="text-muted"
+                           th:if="${post.content != null and !#strings.isEmpty(post.content)}"
+                           th:text="${#strings.abbreviate(post.content, 250)}">
+                            Post content preview...
+                        </p>
+
+                        <!-- Image Section -->
+                        <div th:if="${post.imageUrl != null}" class="my-3">
+                            <img th:src="${post.imageUrl}" class="img-fluid rounded"
+                                 th:alt="${post.title}"
+                                 style="max-height: 400px; object-fit: cover; width: 100%;">
+                        </div>
+
+                        <!-- Post Info and Actions -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted small">
+                                <i class="bi bi-chat me-1"></i>
+                                <span th:text="${post.commentCount}">0</span> Comments
+                            </div>
+<!--                            <div>-->
+<!--                                <span class="badge bg-secondary me-2"-->
+<!--                                      th:text="${post.postType}">TEXT</span>-->
+<!--                            </div>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Posts Message -->
+    <div th:if="${posts.content.size() == 0}" class="text-center py-5">
+        <i class="bi bi-inbox display-1 text-muted"></i>
+        <h3 class="text-muted mt-3">No popular posts yet</h3>
+        <p class="text-muted">Start the conversation by creating a new post!</p>
+    </div>
+
+    <!-- Pagination -->
+    <nav th:if="${posts.totalPages > 1}" aria-label="Posts pagination" class="mt-4">
+        <ul class="pagination justify-content-center" style="gap: 6px;">
+            <!-- Previous Button -->
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/popular(page=${currentPage - 1}, size=${posts.size})}"
+                   style="border-radius: 8px; color: #0d6efd; font-weight: 500;">
+                    <i class="bi bi-chevron-left"></i> Previous
+                </a>
+            </li>
+
+            <!-- Page Numbers -->
+            <li th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}"
+                class="page-item"
+                th:classappend="${i == currentPage} ? 'active'">
+                <a class="page-link"
+                   th:href="@{/popular(page=${i}, size=${posts.size})}"
+                   th:text="${i + 1}"
+                   style="border-radius: 8px; font-weight: 500;"></a>
+            </li>
+
+            <!-- Next Button -->
+            <li class="page-item" th:classappend="${currentPage == posts.totalPages - 1} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/popular(page=${currentPage + 1}, size=${posts.size})}"
+                   style="border-radius: 8px; color: #0d6efd; font-weight: 500;">
+                    Next <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Page Info -->
+    <div th:if="${posts.totalPages > 1}" class="text-center text-muted small mt-3">
+        Page <strong th:text="${currentPage + 1}">1</strong> of
+        <strong th:text="${posts.totalPages}">1</strong>
+        (<strong th:text="${posts.totalElements}">0</strong> total posts)
+    </div>
+</div>
+</body>
+</html>
+

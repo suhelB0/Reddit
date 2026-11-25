@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="sidebar">
+    <div class="bg-light border-end min-vh-100 d-flex flex-column align-items-start p-3" style="width: 220px;">
+        <a class="navbar-brand mb-3 fw-bold d-flex align-items-center" th:href="@{/}">
+            <img src="/images/reddit-logo.png" style="width:32px;height:32px;" alt="Reddit" class="me-2"/>
+            Reddit
+        </a>
+        <ul class="nav nav-pills flex-column mb-auto w-100">
+            <li class="nav-item">
+                <a th:href="@{/}" class="nav-link text-dark"><i class="bi bi-house"></i> Home</a>
+            </li>
+            <li>
+                <a th:href="@{/communities}" class="nav-link text-dark"><i class="bi bi-people"></i> Communities</a>
+            </li>
+            <li>
+                <a th:href="@{/posts}" class="nav-link text-dark"><i class="bi bi-collection"></i> Posts</a>
+            </li>
+            <li>
+                <a th:href="@{/popular}" class="nav-link text-dark d-flex align-items-center">
+                    <i class="bi bi-fire me-2 text-danger"></i> Popular
+                </a>
+            </li>
+        </ul>
+        <hr class="w-100"/>
+        <div class="w-100" th:if="${joinedCommunities != null and !joinedCommunities.isEmpty()}">
+            <strong class="text-muted small">My Communities</strong>
+            <ul class="nav flex-column">
+                <li th:each="comm : ${joinedCommunities}">
+                    <a th:href="@{'/communities/' + ${comm.id}}"
+                       class="nav-link small text-dark">
+                        r/<span th:text="${comm.name}">community</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>

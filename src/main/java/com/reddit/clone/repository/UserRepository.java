@@ -1,0 +1,38 @@
+package com.reddit.clone.repository;
+
+import com.reddit.clone.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    Optional<User> findByUsername(String username);
+
+    Optional<User> findByEmail(String email);
+
+    boolean existsByUsername(String username);
+
+    boolean existsByEmail(String email);
+
+    @Query("""
+       SELECT u 
+       FROM User u 
+       LEFT JOIN FETCH u.profile 
+       WHERE u.username = :username
+       """)
+    Optional<User> findByUsernameWithProfile(@Param("username") String username);
+
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.joinedCommunities WHERE u.id = :userId")
+    Optional<User> findByIdWithJoinedCommunities(@Param("userId") Long userId);
+//
+//    @Query("""
+//    SELECT DISTINCT c FROM Community c
+//    LEFT JOIN c.members m
+//    WHERE m.id = :userId OR c.creator.id = :userId
+//""")
+//    Optional<User> findByIdWithJoinedCommunities(@Param("userId") Long userId);
+}

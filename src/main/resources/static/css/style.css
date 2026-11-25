@@ -1,0 +1,222 @@
+body { background: #f4f6f8; }
+main { background: #fff; min-height: 90vh; border-radius: 12px; }
+        /* ✅ Makes sure layout content fills page background inside base layout */
+        [layout\\:fragment="content"] {
+            background-color: #f6f7f8;
+            min-height: calc(100vh - 120px); /* adjust based on your header/footer height */
+            padding: 24px;
+        }
+
+        html, body {
+            background-color: #f6f7f8;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .mail-main {
+            display: flex;
+            gap: 24px;
+            height: calc(100vh - 160px);
+            width: 100%;
+        }
+
+        .inbox-section {
+            flex: 0 0 350px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(50, 50, 50, 0.05);
+            overflow-y: auto;
+        }
+
+        .chat-wrapper {
+            flex-grow: 1;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(50, 50, 50, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .inbox-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-bottom: 1px solid #dee2e6;
+            color: #ff5700;
+        }
+
+        .inbox-card {
+            border: none;
+            border-radius: 0;
+            transition: background 0.2s ease;
+            padding: 16px 20px;
+            cursor: pointer;
+        }
+
+        .inbox-card.active, .inbox-card:hover {
+            background: #f8f9fa;
+            border-left: 4px solid #ff5700;
+        }
+
+        .username {
+            color: #ff5700;
+            font-weight: 600;
+        }
+
+        .msg-snippet {
+            color: #6c757d;
+            font-size: 15px;
+            margin-top: 2px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 240px;
+        }
+
+        .time-badge {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .msg-icon {
+            font-size: 1.5rem;
+            color: #ff5700;
+        }
+
+        .chat-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #dee2e6;
+            background: #fcf5f0;
+            font-weight: 600;
+            font-size: 1.12rem;
+            color: #ff5700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-users {
+            font-size: 0.95rem;
+            color: #8a8a8a;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .chat-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #fafafa;
+        }
+
+        .chat-message {
+            display: flex;
+            align-items: flex-end;
+            margin-bottom: 18px;
+        }
+
+        .chat-message.sent {
+            justify-content: flex-end;
+        }
+
+        .chat-message.received {
+            justify-content: flex-start;
+        }
+
+        .profile-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ececec;
+            color: #ff5700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-right: 10px;
+        }
+
+        .chat-message.sent .profile-icon {
+            order: 1;
+            margin-left: 10px;
+            margin-right: 0;
+        }
+
+        .message-bubble {
+            padding: 12px 17px;
+            border-radius: 24px;
+            max-width: 65vw;
+            min-width: 60px;
+            line-height: 1.45;
+            font-size: 1rem;
+            word-break: break-word;
+            box-shadow: 0 2px 9px rgba(0,0,0,0.05);
+        }
+
+        .received .message-bubble {
+            background: #f3f5f8;
+            color: #000;
+            border-bottom-left-radius: 5px;
+        }
+
+        .sent .message-bubble {
+            background: #ff5700;
+            color: #fff;
+            border-bottom-right-radius: 5px;
+        }
+
+        .timestamp {
+            font-size: 0.74rem;
+            color: #bdbdbd;
+            margin-top: 3px;
+            margin-left: 5px;
+        }
+
+        .chat-footer {
+            border-top: 1px solid #dee2e6;
+            padding: 12px 18px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        textarea {
+            resize: none;
+            height: 38px;
+            min-height: 38px;
+        }
+
+        @media (max-width: 900px) {
+            .mail-main {
+                flex-direction: column;
+            }
+            .inbox-section, .chat-wrapper {
+                height: 50vh;
+            }
+        }
+        .chat-footer {
+            width: 100%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            padding: 12px 18px;
+            box-sizing: border-box;
+        }
+
+        .chat-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 80vh; /* or 100% if inside full-height container */
+            width: 100%;
+        }
+
+        .chat-body {
+            flex: 1;
+            overflow-y: auto;
+        }

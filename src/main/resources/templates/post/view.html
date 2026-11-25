@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+
+<head><title>Post Details</title></head>
+<body>
+
+<div layout:fragment="content">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h2 class="card-title mb-2" th:text="${post.title}"></h2>
+<!--                    <div class="mb-2 text-muted small">-->
+<!--                        r/<span th:text="${post.communityName}"></span> &bullet;-->
+<!--                        by <span th:text="${post.username}"></span> &bullet;-->
+<!--                        <span th:text="${#temporals.format(post.createdDate, 'MMM dd, yyyy')}"></span>-->
+<!--                    </div>-->
+                    <div class="mb-2 text-muted small">
+                        r/<span th:text="${post.communityName}"></span> &bullet;
+                        by
+                        <a th:href="@{'/user/' + ${post.username}}"
+                           class="text-decoration-none text-muted fw-semibold">
+                            <span th:text="${post.username}"></span>
+                        </a>
+                        &bullet;
+                        <span th:text="${#temporals.format(post.createdDate, 'MMM dd, yyyy')}"></span>
+                    </div>
+                    <p class="card-text" th:text="${post.content}"></p>
+
+                    <div th:each="file : ${existingFiles}" class="col-md-6">
+                        <div class="card">
+                            <div class="card-body p-2">
+                                <!-- Display Image -->
+                                <div th:if="${file.fileType.startsWith('image')}">
+                                    <img th:src="${file.fileUrl}"
+                                         class="img-fluid rounded mb-2"
+                                         alt="Media file"
+                                         style="max-height: 150px; object-fit: cover; width: 100%;">
+                                </div>
+                                <!-- Display Video -->
+                                <div th:if="${file.fileType.startsWith('video')}">
+                                    <video controls class="w-100 rounded mb-2" style="max-height: 150px;">
+                                        <source th:src="${file.fileUrl}" th:type="${file.fileType}">
+                                    </video>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voting, Comments, Edit & Delete Section -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="d-flex align-items-center">
+                            <!-- Vote Buttons -->
+                            <form th:action="@{/api/votes}" method="post" class="d-inline me-3">
+                                <input type="hidden" name="postId" th:value="${post.id}" />
+                                <button type="submit" name="voteType" value="UPVOTE" class="btn btn-sm"
+                                        th:classappend="${post.voteStatus == 'UPVOTE'} ? 'btn-success' : 'btn-outline-secondary'">
+                                    <i class="bi bi-arrow-up-circle"></i>
+                                </button>
+                                <span class="mx-2 fw-bold" th:text="${post.voteCount}"></span>
+                                <button type="submit" name="voteType" value="DOWNVOTE" class="btn btn-sm"
+                                        th:classappend="${post.voteStatus == 'DOWNVOTE'} ? 'btn-danger' : 'btn-outline-secondary'">
+                                    <i class="bi bi-arrow-down-circle"></i>
+                                </button>
+                            </form>
+
+                            <!-- Comment Count -->
+                            <span class="text-muted">
+                                <i class="bi bi-chat"></i>
+                                <span th:text="${post.commentCount}"></span> Comments
+                            </span>
+
+                        </div>
+
+                        <!-- Edit and Delete Buttons (Right Side) -->
+                        <div class="d-flex align-items-center">
+<!--                            <a th:href="@{'/posts/' + ${post.id} + '/edit'}"-->
+<!--                               class="btn btn-sm btn-outline-secondary me-2">-->
+<!--                                <i class="bi bi-pencil"></i> Edit-->
+<!--                            </a>-->
+                            <a th:if="${currentUser != null and (
+          (post.community != null and post.community.creatorUsername == currentUser.username)
+          or (post.username == currentUser.username)
+        )}"
+                               th:href="@{'/posts/' + ${post.id} + '/edit'}"
+                               class="btn btn-secondary">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+
+                            <form th:if="${currentUser != null and (
+          (post.community != null and post.community.creatorUsername == currentUser.username)
+          or (post.username == currentUser.username)
+        )}"
+                                  th:action="@{'/posts/' + ${post.id} + '/delete'}"
+                                  method="post"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Are you sure you want to delete this post?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="card-body">
+                <!-- Form to add a top-level comment -->
+                <form th:action="@{/posts/{id}/comments(id=${post.id})}" th:object="${commentDto}" method="post" class="mb-4">
+                    <div class="mb-3">
+                        <textarea class="form-control" th:field="*{text}" placeholder="Write a comment..." rows="3" required></textarea>
+                    </div>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-send"></i> Add Comment
+                    </button>
+                </form>
+
+                <!-- Recursive Comment Fragment -->
+                <div th:fragment="commentThread(commentList, level)">
+                    <div th:each="comment : ${commentList}" class="mb-3">
+                        <!-- Comment Card with dynamic indentation -->
+                        <div class="card shadow-sm">
+                            <div class="card-body" th:classappend="${level > 0} ? 'py-2' : ''">
+                                <!-- Comment Header -->
+                                <div class="d-flex align-items-center mb-2">
+                                    <div th:classappend="${level == 0} ? 'bg-primary' : 'bg-secondary'"
+                                         class="text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                         th:style="${level == 0} ? 'width: 40px; height: 40px; font-weight: bold;' : 'width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;'">
+                                        <span th:text="${#strings.substring(comment.user.username, 0, 1).toUpperCase()}">U</span>
+                                    </div>
+                                    <div>
+<!--                                        <strong th:classappend="${level > 0} ? 'small' : ''" th:text="${comment.user.username}">Username</strong>-->
+                                        <a th:href="@{/user/{username}(username=${comment.user.username})}"
+                                           class="text-decoration-none text-dark"
+                                           th:classappend="${level > 0} ? 'small' : ''">
+                                            <strong th:text="${comment.user.username}">Username</strong>
+                                        </a>
+                                        <small th:text="${@timeAgoUtil.toTimeAgo(comment.createdDate)}"></small>
+                                    </div>
+
+                                    <!-- Edit and Delete Options -->
+                                    <div class="ms-auto">
+                                        <!-- ============================
+Comment Edit Form (with confirmation)
+=============================== -->
+<!--                                        pencil icon  : edit-->
+                                        <button th:if="${currentUser != null and (
+          (post.community != null and post.community.creatorUsername == currentUser.username)
+          or (post.username == currentUser.username) or (currentUser.username == comment.user.username) )}"
+                                                type="button" class="btn btn-sm btn-outline-secondary" title="Edit"
+                                                data-bs-toggle="modal" th:attr="data-bs-target='#editModal-' + ${comment.id}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+
+                                        <!-- ============================
+                                        Bootstrap Confirmation Modal
+                                        =============================== -->
+                                        <div class="modal fade" th:id="'editModal-' + ${comment.id}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-light">
+                                                        <h5 class="modal-title">
+                                                            <i class="bi bi-pencil-square text-primary"></i> Edit Comment
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form th:action="@{/editComment/{id}(id=${comment.id})}" method="post">
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-semibold">Your Comment</label>
+                                                                <textarea class="form-control"
+                                                                          name="text"
+                                                                          rows="5"
+                                                                          th:text="${comment.text}"
+                                                                          placeholder="Write your comment..."
+                                                                          required></textarea>
+                                                                <div class="form-text">
+                                                                    <i class="bi bi-info-circle"></i> Edit your comment and click save.
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                                <i class="bi bi-x-circle"></i> Cancel
+                                                            </button>
+                                                            <button type="submit" class="btn btn-primary">
+                                                                <i class="bi bi-check-circle"></i> Save Changes
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--delete comment ----------------------------------------------------------------------------------->
+
+<!--                                        delete icon on the comment-->
+                                        <form th:if="${currentUser != null and (
+          (post.community != null and post.community.creatorUsername == currentUser.username)
+          or (post.username == currentUser.username) or (currentUser.username == comment.user.username) )}"
+                                                th:action="@{/deleteComment/{id}(id=${comment.id})}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this comment?');">
+                                            <input type="hidden" name="_method" value="delete" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </div>
+
+                                <!-- Comment Text -->
+                                <p class="mb-3"
+                                   th:classappend="${level > 0} ? 'ms-5' : ''"
+                                   th:text="${comment.text}">Comment content here</p>
+
+                                <!-- Action Buttons -->
+                                <div th:classappend="${level > 0} ? 'ms-5' : ''">
+                                    <!-- Reply Button -->
+                                    <button class="btn btn-sm btn-outline-primary"
+                                            th:classappend="${level > 0} ? 'btn-outline-secondary' : ''"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            th:attr="data-bs-target='#replyForm-' + ${comment.id}">
+                                        <i class="bi bi-reply"></i> Reply
+                                    </button>
+
+                                    <!-- Show Replies Button (only if replies exist) -->
+                                    <button th:if="${comment.replies != null and #lists.size(comment.replies) > 0}"
+                                            class="btn btn-sm btn-link text-decoration-none ms-2"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            th:attr="data-bs-target='#replies-' + ${comment.id}">
+                                        <i class="bi bi-chevron-down"></i>
+                                        <span th:text="${#lists.size(comment.replies)} + ' replies'">0 replies</span>
+                                    </button>
+                                </div>
+
+                                <!-- Reply Form (Collapsed by default) -->
+                                <div class="collapse mt-3" th:if="${currentUser != null}"
+                                     th:classappend="${level > 0} ? 'ms-5' : ''"
+                                     th:id="'replyForm-' + ${comment.id}">
+                                    <form th:action="@{/posts/{postId}/comments(postId=${post.id})}" method="post">
+                                        <input type="hidden" name="parentCommentId" th:value="${comment.id}" />
+                                        <textarea name="text" placeholder="Write a reply..." class="form-control mb-2" rows="2" required></textarea>
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-send"></i> Submit Reply
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Recursively render nested comments (Collapsed by default) -->
+                            <div th:if="${comment.replies != null and #lists.size(comment.replies) > 0}"
+                                 class="collapse ps-4 pe-3 pb-3"
+                                 th:id="'replies-' + ${comment.id}">
+                                <div th:replace="~{:: commentThread(${comment.replies}, ${level + 1})}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Render top-level comments using the fragment -->
+                <div th:replace="~{:: commentThread(${comments.?[parentComment == null]}, 0)}"></div>
+
+                <!-- No comments message -->
+                <div th:if="${#lists.isEmpty(comments)}" class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No comments yet. Be the first to comment!
+                </div>
+            </div>
+
+            <!--            comments end                 -->
+        </div>
+    </div>
+</div>
+</body>
+</html>

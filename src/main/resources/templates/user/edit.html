@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Edit Profile</title></head>
+<body>
+<div layout:fragment="content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header -->
+                <div class="d-flex align-items-center mb-4">
+                    <a th:href="@{'/user/' + ${username}}" class="btn btn-outline-secondary me-3">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                    <h2 class="mb-0">Edit Profile</h2>
+                </div>
+
+                <!-- Alerts -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Form -->
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form th:action="@{'/user/' + ${username} + '/edit'}"
+                              method="post"
+                              enctype="multipart/form-data"
+                              th:object="${userUpdateForm}">
+
+                            <!-- Banner Image -->
+                            <div class="mb-4">
+                                <h5>Banner Image</h5>
+                                <div style="height: 150px; overflow: hidden; border-radius: 8px;">
+                                    <div id="bannerContainer">
+                                        <img th:if="${userUpdateForm.bannerImageUrl != null}"
+                                             th:src="${userUpdateForm.bannerImageUrl}"
+                                             id="bannerPreview"
+                                             class="w-100 h-100"
+                                             style="object-fit: cover;">
+                                        <div th:unless="${userUpdateForm.bannerImageUrl != null}"
+                                             id="bannerPreview"
+                                             class="w-100 h-100 d-flex align-items-center justify-content-center text-white"
+                                             style="background: linear-gradient(135deg,#667eea 0%,#764ba2 100%)">
+                                            <span>No banner image</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2 mt-2">
+                                    <label for="bannerImage" class="btn btn-outline-primary btn-sm">Upload Banner</label>
+                                    <input type="file" id="bannerImage" name="bannerImage" class="d-none" accept="image/*" onchange="previewBanner(event)">
+                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeBanner()">Remove</button>
+                                </div>
+                                <input type="hidden" id="removeBannerFlag" name="removeBanner" value="false">
+                            </div>
+
+                            <hr>
+
+                            <!-- Profile Image -->
+                            <div class="mb-4">
+                                <h5>Profile Picture</h5>
+                                <div class="d-flex align-items-center">
+                                    <img th:src="${userUpdateForm.profileImageUrl != null ? userUpdateForm.profileImageUrl : '/images/default-avatar.png'}"
+                                         id="profilePreview"
+                                         class="rounded-circle"
+                                         style="width:100px;height:100px;object-fit:cover;border:3px solid #e9ecef;">
+                                    <div class="ms-3">
+                                        <label for="profileImage" class="btn btn-outline-primary btn-sm">Change</label>
+                                        <input type="file" id="profileImage" name="profileImage" class="d-none" accept="image/*" onchange="previewImage(event)">
+                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeProfileImage()">Remove</button>
+                                        <input type="hidden" id="removeProfileFlag" name="removeProfile" value="false">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Display Name -->
+                            <div class="mb-3">
+                                <label for="displayName" class="form-label">Display Name *</label>
+                                <input type="text" class="form-control" id="displayName" th:field="*{displayName}" required maxlength="50">
+                            </div>
+
+                            <!-- Bio -->
+                            <div class="mb-3">
+                                <label for="bio" class="form-label">Bio</label>
+                                <textarea id="bio" class="form-control" th:field="*{bio}" rows="4" maxlength="500"></textarea>
+                                <div class="form-text"><span id="bioCount">0</span>/500</div>
+                            </div>
+
+                            <!-- Location -->
+                            <div class="mb-3">
+                                <label for="location">Location</label>
+                                <input type="text" class="form-control" id="location" th:field="*{location}" maxlength="100">
+                            </div>
+
+                            <!-- Website -->
+                            <div class="mb-3">
+                                <label for="website">Website</label>
+                                <input type="url" class="form-control" id="website" th:field="*{website}">
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a th:href="@{'/user/' + ${username}}" class="btn btn-outline-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 5*1024*1024) { alert('Max 5MB'); event.target.value=''; return; }
+
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('profilePreview').src = e.target.result;
+            document.getElementById('removeProfileFlag').value = 'false';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeProfileImage() {
+        document.getElementById('profilePreview').src = '/images/default-avatar.png';
+        document.getElementById('profileImage').value = '';
+        document.getElementById('removeProfileFlag').value = 'true';
+    }
+
+    function previewBanner(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 5*1024*1024) { alert('Max 5MB'); event.target.value=''; return; }
+
+        const reader = new FileReader();
+        reader.onload = e => {
+            const container = document.getElementById('bannerContainer');
+            container.innerHTML = '<img src="'+e.target.result+'" id="bannerPreview" class="w-100 h-100" style="object-fit:cover">';
+            document.getElementById('removeBannerFlag').value = 'false';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeBanner() {
+        const container = document.getElementById('bannerContainer');
+        container.innerHTML = '<div id="bannerPreview" class="w-100 h-100 d-flex align-items-center justify-content-center text-white" style="background: linear-gradient(135deg,#667eea 0%,#764ba2 100%)"><span>No banner image</span></div>';
+        document.getElementById('bannerImage').value = '';
+        document.getElementById('removeBannerFlag').value = 'true';
+    }
+
+    const bioTextarea = document.getElementById('bio');
+    const bioCount = document.getElementById('bioCount');
+    if (bioTextarea) {
+        bioCount.textContent = bioTextarea.value.length;
+        bioTextarea.addEventListener('input', () => { bioCount.textContent = bioTextarea.value.length; });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Inbox</title>-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">-->
+<!--    <style>-->
+<!--        .inbox-card {-->
+<!--            border-radius: 8px;-->
+<!--            border: none;-->
+<!--            box-shadow: 0 2px 10px rgba(50,50,50,0.05);-->
+<!--            background: #fff;-->
+<!--            padding: 0;-->
+<!--        }-->
+<!--        .inbox-card.active,-->
+<!--        .inbox-card:active,-->
+<!--        .inbox-card:focus,-->
+<!--        .inbox-card:hover {-->
+<!--            background: #f8f9fa;-->
+<!--            border-left: 4px solid #ff5700;-->
+<!--        }-->
+<!--        .username {-->
+<!--            color: #ff5700;-->
+<!--            font-weight: 600;-->
+<!--        }-->
+<!--        .msg-snippet {-->
+<!--            color: #6c757d;-->
+<!--            font-size: 15px;-->
+<!--            margin-top: 2px;-->
+<!--            overflow: hidden;-->
+<!--            white-space: nowrap;-->
+<!--            text-overflow: ellipsis;-->
+<!--            max-width: 360px;-->
+<!--        }-->
+<!--        .time-badge {-->
+<!--            font-size: 13px;-->
+<!--            color: #6c757d;-->
+<!--        }-->
+<!--        .msg-icon {-->
+<!--            font-size: 1.5rem;-->
+<!--            color: #ff5700;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="bg-light">-->
+
+<!--<div class="container py-4" style="max-width: 600px;">-->
+<!--    <div class="d-flex align-items-center justify-content-center mb-4 gap-2">-->
+<!--        <i class="bi bi-envelope-paper-fill msg-icon"></i>-->
+<!--        <h2 class="mb-0">Inbox</h2>-->
+<!--    </div>-->
+
+<!--    <div th:if="${#lists.isEmpty(receivedMessages)}" class="alert alert-info text-center">-->
+<!--        No messages received yet.-->
+<!--    </div>-->
+
+<!--    <div class="list-group shadow-sm rounded" th:if="${!#lists.isEmpty(receivedMessages)}">-->
+<!--        <a th:each="msg : ${receivedMessages}"-->
+<!--           th:href="@{'/messages/' + ${msg.sender.id}}"-->
+<!--           class="inbox-card list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2 p-3">-->
+<!--            <div class="d-flex flex-column">-->
+<!--                <span class="username" th:text="${msg.sender.username}">Username</span>-->
+<!--                <span class="msg-snippet" th:text="${msg.content}">Message content preview</span>-->
+<!--            </div>-->
+<!--            <span class="time-badge" th:text="${#temporals.format(msg.sentAt, 'dd MMM HH:mm')}"></span>-->
+<!--        </a>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--</body>-->
+<!--</html>-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Inbox & Conversation</title>
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="mail-main">
+        <!-- Inbox -->
+        <div class="inbox-section">
+            <div class="inbox-header">
+                <i class="bi bi-envelope-paper-fill"></i> Inbox
+            </div>
+
+            <div th:if="${#lists.isEmpty(receivedMessages)}" class="alert alert-info text-center my-3">
+                No messages received yet.
+            </div>
+
+            <div class="list-group" th:if="${!#lists.isEmpty(receivedMessages)}">
+                <a th:each="msg : ${receivedMessages}"
+                   th:href="@{/messages/{receiverId}(receiverId=${msg.sender.id})}"
+                   th:class="'inbox-card list-group-item list-group-item-action' + (msg.sender.id == activeChatId ? ' active' : '')">
+                    <div>
+                        <div class="username" th:text="${msg.sender.username}">Username</div>
+                        <span class="msg-snippet" th:text="${msg.content}">Message content</span>
+                    </div>
+                    <span class="time-badge" th:text="${#temporals.format(msg.sentAt, 'dd MMM HH:mm')}">time</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Chat -->
+        <div class="chat-wrapper">
+            <div th:each="chat : ${conversations}">
+                <div th:id="'chat-' + ${chat.id}" th:style="${chat.id == activeChatId} ? '' : 'display:none;'">
+                    <div class="chat-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-reddit"></i>
+                            Conversation
+                            <span class="header-users"
+                                  th:text="${chat.messages[0].sender.username} + ' ↔ ' + ${chat.messages[0].receiver.username}">
+                                sender ↔ receiver
+                            </span>
+                        </div>
+                    </div>
+                    <div class="chat-body">
+                        <div th:each="msg : ${chat.messages}"
+                             th:class="'chat-message ' + (${msg.sender.username == #authentication.name} ? 'sent' : 'received')">
+                            <div class="profile-icon" th:text="${#strings.substring(msg.sender.username, 0, 1)?.toUpperCase()}">U</div>
+                            <div>
+                                <div class="message-bubble" th:text="${msg.content}">Message content</div>
+                                <div class="timestamp" th:text="${#temporals.format(msg.sentAt, 'HH:mm · dd MMM')}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-footer">
+                        <form th:action="@{/messages/send}" method="post" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="receiverId" th:value="${chat.receiver.id}">
+                            <textarea name="content" class="form-control" rows="1" placeholder="Type your message..." required></textarea>
+                            <button class="btn btn-primary px-3" type="submit"><i class="bi bi-send-fill"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

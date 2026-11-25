@@ -1,0 +1,340 @@
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Messages</title>-->
+
+<!--    &lt;!&ndash; Bootstrap CSS &ndash;&gt;-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">-->
+
+<!--    &lt;!&ndash; Optional: Bootstrap Icons &ndash;&gt;-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">-->
+
+<!--    <style>-->
+<!--        body {-->
+<!--            background-color: #f6f7f8;-->
+<!--            font-family: "Segoe UI", Arial, sans-serif;-->
+<!--        }-->
+
+<!--        .chat-wrapper {-->
+<!--            max-width: 700px;-->
+<!--            margin: 40px auto;-->
+<!--            background: #fff;-->
+<!--            border-radius: 10px;-->
+<!--            box-shadow: 0 1px 5px rgba(0,0,0,0.1);-->
+<!--            display: flex;-->
+<!--            flex-direction: column;-->
+<!--            height: 80vh;-->
+<!--        }-->
+
+<!--        .chat-header {-->
+<!--            padding: 15px 20px;-->
+<!--            border-bottom: 1px solid #dee2e6;-->
+<!--            background: #f8f9fa;-->
+<!--            font-weight: 600;-->
+<!--            font-size: 1.1rem;-->
+<!--        }-->
+
+<!--        .chat-body {-->
+<!--            flex: 1;-->
+<!--            overflow-y: auto;-->
+<!--            padding: 20px;-->
+<!--            background-color: #fafafa;-->
+<!--        }-->
+
+<!--        .chat-message {-->
+<!--            display: flex;-->
+<!--            margin-bottom: 15px;-->
+<!--        }-->
+
+<!--        .chat-message.sent {-->
+<!--            justify-content: flex-end;-->
+<!--        }-->
+
+<!--        .chat-message.received {-->
+<!--            justify-content: flex-start;-->
+<!--        }-->
+
+<!--        .message-bubble {-->
+<!--            padding: 10px 14px;-->
+<!--            border-radius: 20px;-->
+<!--            max-width: 70%;-->
+<!--            position: relative;-->
+<!--        }-->
+
+<!--        .sent .message-bubble {-->
+<!--            background-color: #007bff;-->
+<!--            color: white;-->
+<!--            border-bottom-right-radius: 0;-->
+<!--        }-->
+
+<!--        .received .message-bubble {-->
+<!--            background-color: #e9ecef;-->
+<!--            color: #000;-->
+<!--            border-bottom-left-radius: 0;-->
+<!--        }-->
+
+<!--        .timestamp {-->
+<!--            font-size: 0.75rem;-->
+<!--            color: #6c757d;-->
+<!--            margin-top: 3px;-->
+<!--            text-align: right;-->
+<!--        }-->
+
+<!--        .chat-footer {-->
+<!--            border-top: 1px solid #dee2e6;-->
+<!--            padding: 10px;-->
+<!--            background: #f8f9fa;-->
+<!--        }-->
+
+<!--        textarea {-->
+<!--            resize: none;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+
+<!--<body>-->
+<!--<div class="chat-wrapper">-->
+<!--    &lt;!&ndash; Header &ndash;&gt;-->
+<!--    <div class="chat-header d-flex justify-content-between align-items-center">-->
+<!--        <span><i class="bi bi-chat-dots"></i> Conversation</span>-->
+<!--        <a th:href="@{/messages/inbox}" class="text-secondary small"><i class="bi bi-arrow-left"></i> Back to Inbox</a>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Chat Body &ndash;&gt;-->
+<!--    <div class="chat-body">-->
+<!--        <div th:each="msg : ${messages}"-->
+<!--             th:class="'chat-message ' + (${msg.sender.username == #authentication.name} ? 'sent' : 'received')">-->
+<!--            <div class="message-bubble" th:text="${msg.content}"></div>-->
+<!--            <div class="timestamp" th:text="${#temporals.format(msg.sentAt, 'HH:mm, dd MMM')}"></div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Chat Footer &ndash;&gt;-->
+<!--    <div class="chat-footer">-->
+<!--        <form th:action="@{/messages/send}" method="post" class="d-flex align-items-center">-->
+<!--            <input type="hidden" name="receiverId" th:value="${receiverId}">-->
+<!--            <textarea name="content" class="form-control me-2" rows="1" placeholder="Type your message..." required></textarea>-->
+<!--            <button class="btn btn-primary" type="submit"><i class="bi bi-send-fill"></i></button>-->
+<!--        </form>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--&lt;!&ndash; Bootstrap JS (optional for responsiveness) &ndash;&gt;-->
+<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>-->
+<!--</body>-->
+<!--</html>-->
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Conversation</title>-->
+
+<!--    &lt;!&ndash; Bootstrap CSS &ndash;&gt;-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">-->
+<!--    &lt;!&ndash; Bootstrap Icons &ndash;&gt;-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">-->
+
+<!--    <style>-->
+<!--        body {-->
+<!--            background-color: #f6f7f8;-->
+<!--            font-family: "Segoe UI", Arial, sans-serif;-->
+<!--        }-->
+<!--        .chat-wrapper {-->
+<!--            max-width: 700px;-->
+<!--            margin: 40px auto;-->
+<!--            background: #fff;-->
+<!--            border-radius: 10px;-->
+<!--            box-shadow: 0 1px 5px rgba(0,0,0,0.1);-->
+<!--            display: flex;-->
+<!--            flex-direction: column;-->
+<!--            height: 80vh;-->
+<!--        }-->
+<!--        .chat-header {-->
+<!--            padding: 16px 20px;-->
+<!--            border-bottom: 1px solid #dee2e6;-->
+<!--            background: #fcf5f0;-->
+<!--            font-weight: 600;-->
+<!--            font-size: 1.12rem;-->
+<!--            color: #ff5700;-->
+<!--        }-->
+<!--        .chat-body {-->
+<!--            flex: 1;-->
+<!--            overflow-y: auto;-->
+<!--            padding: 20px;-->
+<!--            background-color: #fafafa;-->
+<!--        }-->
+<!--        .chat-message {-->
+<!--            display: flex;-->
+<!--            align-items: flex-end;-->
+<!--            margin-bottom: 18px;-->
+<!--        }-->
+<!--        .chat-message.sent {-->
+<!--            justify-content: flex-end;-->
+<!--        }-->
+<!--        .chat-message.received {-->
+<!--            justify-content: flex-start;-->
+<!--        }-->
+<!--        .profile-icon {-->
+<!--            width: 36px;-->
+<!--            height: 36px;-->
+<!--            border-radius: 50%;-->
+<!--            background: #ececec;-->
+<!--            color: #ff5700;-->
+<!--            display: flex;-->
+<!--            align-items: center;-->
+<!--            justify-content: center;-->
+<!--            font-size: 1.3rem;-->
+<!--            margin-right: 10px;-->
+<!--            margin-left: 2px;-->
+<!--        }-->
+<!--        .chat-message.sent .profile-icon {-->
+<!--            order: 1;-->
+<!--            margin-left: 10px;-->
+<!--            margin-right: 0;-->
+<!--        }-->
+<!--        .chat-message.received .profile-icon {-->
+<!--            order: 0;-->
+<!--        }-->
+<!--        .message-bubble {-->
+<!--            padding: 12px 17px;-->
+<!--            border-radius: 24px;-->
+<!--            max-width: 65vw;-->
+<!--            min-width: 60px;-->
+<!--            line-height: 1.45;-->
+<!--            font-size: 1rem;-->
+<!--            word-break: break-word;-->
+<!--            box-shadow: 0 2px 9px rgba(0,0,0,0.05);-->
+<!--            position: relative;-->
+<!--        }-->
+<!--        .received .message-bubble {-->
+<!--            background: #f3f5f8;-->
+<!--            color: #000;-->
+<!--            border-bottom-left-radius: 5px;-->
+<!--        }-->
+<!--        .sent .message-bubble {-->
+<!--            background: #ff5700;-->
+<!--            color: #fff;-->
+<!--            border-bottom-right-radius: 5px;-->
+<!--        }-->
+<!--        .timestamp {-->
+<!--            font-size: 0.74rem;-->
+<!--            color: #bdbdbd;-->
+<!--            margin-top: 3px;-->
+<!--            margin-left: 5px;-->
+<!--            margin-right: 5px;-->
+<!--        }-->
+<!--        .chat-footer {-->
+<!--            border-top: 1px solid #dee2e6;-->
+<!--            padding: 12px 18px;-->
+<!--            background: #f8f9fa;-->
+<!--        }-->
+<!--        textarea {-->
+<!--            resize: none;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+
+<!--<body>-->
+<!--<div class="chat-wrapper">-->
+<!--    &lt;!&ndash; Header &ndash;&gt;-->
+<!--    <div class="chat-header d-flex justify-content-between align-items-center">-->
+<!--        <span><i class="bi bi-reddit"></i> Conversation</span>-->
+<!--        <a th:href="@{/messages/inbox}" class="text-secondary small"><i class="bi bi-arrow-left"></i> Inbox</a>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Chat Body &ndash;&gt;-->
+<!--    <div class="chat-body">-->
+<!--        <div th:each="msg : ${messages}"-->
+<!--             th:class="'chat-message ' + (${msg.sender.username == #authentication.name} ? 'sent' : 'received')">-->
+<!--            &lt;!&ndash; User icon &ndash;&gt;-->
+<!--            <div class="profile-icon" th:text="${#strings.substring(msg.sender.username, 0, 1)?.toUpperCase()}">U</div>-->
+<!--            &lt;!&ndash; Message bubble &ndash;&gt;-->
+<!--            <div>-->
+<!--                <div class="message-bubble" th:text="${msg.content}"></div>-->
+<!--                <div class="timestamp" th:text="${#temporals.format(msg.sentAt, 'HH:mm · dd MMM')}"></div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Chat Footer &ndash;&gt;-->
+<!--    <div class="chat-footer">-->
+<!--        <form th:action="@{/messages/send}" method="post" class="d-flex align-items-center gap-2">-->
+<!--            <input type="hidden" name="receiverId" th:value="${receiverId}">-->
+<!--            <textarea name="content" class="form-control" rows="1" placeholder="Type your message..." required></textarea>-->
+<!--            <button class="btn btn-primary px-3" type="submit"><i class="bi bi-send-fill"></i></button>-->
+<!--        </form>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>-->
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Conversation</title>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="chat-wrapper">
+        <!-- Header: add usernames of both parties here -->
+        <div class="chat-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-reddit"></i> Conversation
+            <span th:if="${#lists.size(messages) > 0}" class="header-users"
+                  th:text="${messages[0].sender.username} + ' ↔ ' + ${messages[0].receiver.username}">
+                  sender ↔ receiver
+            </span>
+        </span>
+            <a th:href="@{/messages/inbox}" class="text-secondary small"><i class="bi bi-arrow-left"></i> Inbox</a>
+        </div>
+
+        <!-- Chat Body -->
+        <div class="chat-body">
+
+            <!--        <div th:each="msg : ${messages}"-->
+            <div th:if="${#lists.size(messages) > 0}" th:each="msg : ${messages}"
+                 th:class="'chat-message ' + (${msg.sender.username == #authentication.name} ? 'sent' : 'received')">
+                <!-- User icon -->
+                <div class="profile-icon" th:text="${#strings.substring(msg.sender.username, 0, 1)?.toUpperCase()}">U</div>
+                <!-- Message bubble -->
+                <div>
+                    <div class="message-bubble" th:text="${msg.content}"></div>
+                    <div class="timestamp" th:text="${#temporals.format(msg.sentAt, 'HH:mm · dd MMM')}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Footer -->
+        <div class="chat-footer">
+            <form th:action="@{/messages/send}" method="post"
+                  class="d-flex align-items-center gap-2 w-100">
+                <input type="hidden" name="receiverId" th:value="${receiverId}">
+
+                <textarea name="content"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Type your message..."
+                          required
+                          style="flex: 1; resize: none; border-radius: 10px;"></textarea>
+
+                <button class="btn btn-primary px-3"
+                        type="submit"
+                        style="background-color: #ff5700; border: none;">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+</body>
+</html>
+
+

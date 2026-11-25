@@ -1,0 +1,440 @@
+
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+
+<head>
+    <title th:text="'u/' + ${userView.username}">User Profile</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="row">
+        <!-- Left Column - User Content -->
+        <div class="col-lg-8">
+            <!-- User Header -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <img th:src="${userView.profileImageUrl}"
+                                 alt="Profile"
+                                 class="rounded-circle me-3"
+                                 style="width: 80px; height: 80px; object-fit: cover;">
+                            <div>
+                                <h3 class="mb-1" th:text="${userView.displayName}">Display Name</h3>
+                                <p class="text-muted mb-1">
+                                    u/<span th:text="${userView.username}">username</span>
+                                </p>
+                                <div class="d-flex gap-3">
+                                    <small>
+                                        <strong th:text="${userView.totalFollowers}">0</strong> Followers
+                                    </small>
+                                    <small>
+                                        <strong th:text="${userView.totalFollowing}">0</strong> Following
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Follow Button (only show if not the logged-in user's profile) -->
+                        <!-- Follow Button (only show if not the logged-in user's profile) -->
+                        <div th:if="${!userView.isOwnProfile}">
+                            <a th:if="${!userView.isFollowing}"
+                               th:href="@{/user/{username}/follow(username=${userView.username})}"
+                               class="btn btn-primary follow-btn">
+                                <i class="bi bi-person-plus"></i> Follow
+                            </a>
+                            <a th:if="${userView.isFollowing}"
+                               th:href="@{/user/{username}/unfollow(username=${userView.username})}"
+                               class="btn btn-outline-secondary follow-btn">
+                                <i class="bi bi-person-check"></i> Following
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs mb-3">
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${activeTab == 'overview'} ? 'active' : ''"
+                       th:href="@{'/user/' + ${userView.username}}">
+                        <i class="bi bi-grid"></i> Overview
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${activeTab == 'posts'} ? 'active' : ''"
+                       th:href="@{'/user/' + ${userView.username} + '/posts'}">
+                        <i class="bi bi-file-post"></i> Posts
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${activeTab == 'comments'} ? 'active' : ''"
+                       th:href="@{'/user/' + ${userView.username} + '/comments'}">
+                        <i class="bi bi-chat-left-text"></i> Comments
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${activeTab == 'followers'} ? 'active' : ''"
+                       th:href="@{'/user/' + ${userView.username} + '/followers'}">
+                        <i class="bi bi-person-heart"></i> Followers
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${activeTab == 'following'} ? 'active' : ''"
+                       th:href="@{'/user/' + ${userView.username} + '/following'}">
+                        <i class="bi bi-people"></i> Following
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${activeTab == 'upvoted'} ? 'active' : ''"
+                       th:href="@{'/user/' + ${userView.username} + '/upvoteposts'}">
+                        <i class="bi bi-arrow-up-circle"></i> Upvoted
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${activeTab == 'downvoted'} ? 'active' : ''"
+                       th:href="@{'/user/' + ${userView.username} + '/downposts'}">
+                        <i class="bi bi-arrow-down-circle"></i> Downvoted
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <div th:if="${activeTab == 'overview'}">
+                    <div class="text-center py-5">
+                        <i class="bi bi-person-circle display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No overview yet</p>
+                    </div>
+                </div>
+                <!-- Posts Tab -->
+                <div th:if="${activeTab == 'posts'}">
+                    <div th:if="${userView.posts != null and #lists.size(userView.posts) > 0}">
+                        <div th:each="post : ${userView.posts}" class="card mb-3">
+                            <div class="card-body">
+                                <small class="text-muted">
+                                    Posted in r/<span th:text="${post.communityName}">community</span>
+                                </small>
+                                <h5 class="mt-2">
+                                    <a th:href="@{'/posts/' + ${post.id}}"
+                                       class="text-decoration-none text-dark"
+                                       th:text="${post.title}">Post Title</a>
+                                </h5>
+                                <p class="text-muted" th:text="${post.content}">Post content...</p>
+                                <div class="d-flex gap-3 text-muted small">
+                        <span><i class="bi bi-arrow-up"></i>
+                            <span th:text="${post.voteCount}">0</span></span>
+                                    <span><i class="bi bi-chat"></i> Comments</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${userView.posts == null or #lists.isEmpty(userView.posts)}"
+                         class="text-center py-5">
+                        <i class="bi bi-file-post display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No posts yet</p>
+                    </div>
+                </div>
+
+                <!-- Comments Tab -->
+                <div th:if="${activeTab == 'comments'}">
+                    <div th:if="${userView.comments != null and #lists.size(userView.comments) > 0}">
+                        <div th:each="comment : ${userView.comments}" class="card mb-3">
+                            <div class="card-body">
+                                <small class="text-muted">
+                                    Commented on <a th:href="@{'/posts/' + ${comment.postId}}">post</a>
+                                </small>
+                                <p class="mt-2" th:text="${comment.text}">Comment text...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${userView.comments == null or #lists.isEmpty(userView.comments)}"
+                         class="text-center py-5">
+                        <i class="bi bi-chat-left-text display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No comments yet</p>
+                    </div>
+                </div>
+
+                <!-- Followers Tab -->
+                <div th:if="${activeTab == 'followers'}">
+                    <div th:if="${userView.followers != null and #lists.size(userView.followers) > 0}">
+                        <div th:each="follower : ${userView.followers}" class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <img th:src="${follower.profileImageUrl}"
+                                             alt="Profile"
+                                             class="rounded-circle me-3"
+                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                        <div>
+                                            <h6 class="mb-0">
+                                                <a th:href="@{'/user/' + ${follower.username}}"
+                                                   class="text-decoration-none text-dark"
+                                                   th:text="${follower.displayName}">Display Name</a>
+                                            </h6>
+                                            <small class="text-muted">u/<span th:text="${follower.username}">username</span></small>
+                                        </div>
+                                    </div>
+                                    <a th:href="@{'/user/' + ${follower.username}}" class="btn btn-sm btn-outline-primary">
+                                        View Profile
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${userView.followers == null or #lists.isEmpty(userView.followers)}"
+                         class="text-center py-5">
+                        <i class="bi bi-person-heart display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No followers yet</p>
+                    </div>
+                </div>
+
+                <!-- Following Tab -->
+                <div th:if="${activeTab == 'following'}">
+                    <div th:if="${userView.following != null and #lists.size(userView.following) > 0}">
+                        <div th:each="followed : ${userView.following}" class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <img th:src="${followed.profileImageUrl}"
+                                             alt="Profile"
+                                             class="rounded-circle me-3"
+                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                        <div>
+                                            <h6 class="mb-0">
+                                                <a th:href="@{'/user/' + ${followed.username}}"
+                                                   class="text-decoration-none text-dark"
+                                                   th:text="${followed.displayName}">Display Name</a>
+                                            </h6>
+                                            <small class="text-muted">u/<span th:text="${followed.username}">username</span></small>
+                                        </div>
+                                    </div>
+                                    <a th:href="@{'/user/' + ${followed.username}}" class="btn btn-sm btn-outline-primary">
+                                        View Profile
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${userView.following == null or #lists.isEmpty(userView.following)}"
+                         class="text-center py-5">
+                        <i class="bi bi-people display-1 text-muted"></i>
+                        <p class="text-muted mt-3">Not following anyone yet</p>
+                    </div>
+                </div>
+
+                <!-- Upvote Tab -->
+                <div th:if="${activeTab == 'upvoteposts'}">
+                    <div th:if="${userView.upvotedPosts != null and #lists.size(userView.upvotedPosts) > 0}">
+                        <div th:each="post : ${userView.upvotedPosts}" class="card mb-3">
+                            <div class="card-body">
+                                <small class="text-muted">
+                                    Posted in r/<span th:text="${post.communityName}">community</span>
+                                </small>
+                                <h5 class="mt-2">
+                                    <a th:href="@{'/posts/' + ${post.id}}"
+                                       class="text-decoration-none text-dark"
+                                       th:text="${post.title}">Post Title</a>
+                                </h5>
+                                <p class="text-muted" th:text="${post.content}">Post content...</p>
+                                <div class="d-flex gap-3 text-muted small">
+                        <span><i class="bi bi-arrow-up"></i>
+                            <span th:text="${post.voteCount}">0</span></span>
+                                    <span><i class="bi bi-chat"></i> Comments</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${userView.upvotedPosts == null or #lists.isEmpty(userView.upvotedPosts)}"
+                         class="text-center py-5">
+                        <i class="bi bi-file-post display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No upvoted posts yet</p>
+                    </div>
+                </div>
+
+                <!-- DownVote Tab -->
+                <div th:if="${activeTab == 'downposts'}">
+                    <div th:if="${userView.downvotedPosts != null and #lists.size(userView.downvotedPosts) > 0}">
+                        <div th:each="post : ${userView.downvotedPosts}" class="card mb-3">
+                            <div class="card-body">
+                                <small class="text-muted">
+                                    Posted in r/<span th:text="${post.communityName}">community</span>
+                                </small>
+                                <h5 class="mt-2">
+                                    <a th:href="@{'/posts/' + ${post.id}}"
+                                       class="text-decoration-none text-dark"
+                                       th:text="${post.title}">Post Title</a>
+                                </h5>
+                                <p class="text-muted" th:text="${post.content}">Post content...</p>
+                                <div class="d-flex gap-3 text-muted small">
+                        <span><i class="bi bi-arrow-up"></i>
+                            <span th:text="${post.voteCount}">0</span></span>
+                                    <span><i class="bi bi-chat"></i> Comments</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${userView.downvotedPosts == null or #lists.isEmpty(userView.downvotedPosts)}"
+                         class="text-center py-5">
+                        <i class="bi bi-file-post display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No downvoted posts yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Profile Card (Reddit Style) -->
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <!-- Banner -->
+                <div th:if="${userView.bannerImageUrl != null}"
+                     style="height: 100px; overflow: hidden;">
+                    <img th:src="${userView.bannerImageUrl}"
+                         class="w-100 h-100 object-fit-cover"
+                         alt="Banner">
+                </div>
+                <div th:unless="${userView.bannerImageUrl != null}"
+                     style="height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                </div>
+
+                <div class="card-body">
+                    <!-- Profile Image -->
+                    <div class="text-center mt-n5 mb-3">
+                        <img th:src="${userView.profileImageUrl}"
+                             alt="Profile Picture"
+                             class="rounded-circle border border-4 border-white bg-white"
+                             style="width: 80px; height: 80px; object-fit: cover;">
+                    </div>
+
+                    <!-- Username -->
+                    <h5 class="text-center mb-1" th:text="${userView.displayName}">Display Name</h5>
+                    <p class="text-center text-muted small mb-3">
+                        u/<span th:text="${userView.username}">username</span>
+                    </p>
+
+                    <!-- Bio -->
+                    <p class="small text-muted text-center mb-3"
+                       th:if="${userView.bio != null}"
+                       th:text="${userView.bio}">
+                        User bio goes here
+                    </p>
+
+                    <!-- Stats -->
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h6 class="mb-0 fw-bold text-primary" th:text="${userView.postKarma}">0</h6>
+                                <small class="text-muted">Post Karma</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="mb-0 fw-bold text-primary" th:text="${userView.commentKarma}">0</h6>
+                            <small class="text-muted">Comment Karma</small>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Cake Day -->
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-cake2 text-primary me-2"></i>
+                        <small class="text-muted">
+                            Cake day:
+                            <strong th:text="${#temporals.format(userView.createdDate, 'MMM dd, yyyy')}">
+                                Jan 1, 2024
+                            </strong>
+                        </small>
+                    </div>
+
+                    <!-- Location -->
+                    <div th:if="${userView.location != null}" class="d-flex align-items-center mb-2">
+                        <i class="bi bi-geo-alt text-primary me-2"></i>
+                        <small class="text-muted" th:text="${userView.location}">Location</small>
+                    </div>
+
+                    <!-- Website -->
+                    <div th:if="${userView.website != null}" class="d-flex align-items-center mb-2">
+                        <i class="bi bi-link-45deg text-primary me-2"></i>
+                        <small>
+                            <a th:href="${userView.website}" target="_blank"
+                               class="text-decoration-none"
+                               th:text="${userView.website}">website.com</a>
+                        </small>
+                    </div>
+
+                    <hr>
+
+                    <!-- Additional Stats -->
+                    <div class="small text-muted">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Posts:</span>
+                            <strong th:text="${userView.totalPosts}">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Comments:</span>
+                            <strong th:text="${userView.totalComments}">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Communities:</span>
+                            <strong th:text="${userView.totalCommunities}">0</strong>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <a th:href="@{/messages/{userId}(userId=${userView.userId})}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                            <i class="bi bi-chat-dots"></i>
+                            <span class="d-none d-sm-inline">Start Chat</span>
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-three-dots"></i> More Options
+                        </button>
+
+                        <!-- ✅ Only one Edit Profile button (visible only for owner) -->
+                        <div th:if="${userView.getIsOwnProfile}">
+                            <a th:href="@{'/user/' + ${userView.username} + '/edit'}"
+                               class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-pencil-square"></i> Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Moderator Of Card -->
+            <div th:if="${userView.totalCommunities > 0}" class="card shadow-sm mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-shield-check"></i> Moderator of these communities</h6>
+                </div>
+                <div class="card-body">
+                    <div th:if="${userView.communities != null}">
+                        <div th:each="community : ${userView.communities}" class="mb-2">
+                            <a th:href="@{'/communities/' + ${community.id}}"
+                               class="text-decoration-none">
+                                r/<span th:text="${community.name}">community</span>
+                            </a>
+                        </div>
+                    </div>
+                    <p class="small text-muted mb-0" th:unless="${userView.communities != null}">
+                        Created <span th:text="${userView.totalCommunities}">0</span> communities
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
